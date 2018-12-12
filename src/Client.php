@@ -21,6 +21,8 @@ class Client
 
     private $root = '';
 
+    private $auth = null;
+
     public function __construct($server = '', $version = 'v2')
     {
         $server = rtrim($server, '/');
@@ -56,6 +58,17 @@ class Client
 	{
 		$this->guzzleclient = $guzzleClient;
 		return $this;
+    }
+
+	/**
+	 * Set username and password for authentication with GuzzleClient
+	 * @param username and password strings
+	 * @return auth array for using with GuzzleClient
+	 */
+    public function setCredentials(string $username, string $password) 
+    {
+        $this->auth = [ 'auth' => [ $username, $password ] ];
+        return $this->auth;
     }
 
     /**
@@ -490,7 +503,7 @@ class Client
         }
         $request = $this->guzzleclient->post(
             $this->buildKeyUri($dir),
-            null,
+            $this->auth,
             $data
         );
 
@@ -517,7 +530,7 @@ class Client
             $data['ttl'] = $ttl;
         }
 
-        $request = $this->guzzleclient->post($this->buildKeyUri($dir), null, $data, array(
+        $request = $this->guzzleclient->post($this->buildKeyUri($dir), $this->auth, $data, array(
             'query' => $condition
         ));
         $response = $request->send();
