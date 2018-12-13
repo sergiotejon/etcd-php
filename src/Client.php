@@ -67,7 +67,7 @@ class Client
 	 */
     public function setCredentials(string $username, string $password) 
     {
-        $this->auth = [ 'auth' => [ $username, $password ] ];
+        $this->auth = [ $username, $password ];
         return $this->auth;
     }
 
@@ -115,7 +115,7 @@ class Client
      */
     public function getVersion($uri)
     {
-        $response = $this->guzzleclient->get($uri);
+        $response = $this->guzzleclient->get($uri, [ 'auth' => $this->auth ]);
         $data = json_decode($response->getBody(), true);
         if (JSON_ERROR_NONE !== json_last_error()) {
             throw new RuntimeException('Unable to parse response body into JSON: ' . json_last_error());
@@ -142,7 +142,8 @@ class Client
         try {
             $response = $this->guzzleclient->put($this->buildKeyUri($key), array(
                 'query' => $condition,
-                'form_params' => $data
+                'form_params' => $data,
+                'auth' => $this->auth 
             ));
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
@@ -167,7 +168,8 @@ class Client
             $response = $this->guzzleclient->get(
                 $this->buildKeyUri($key),
                 array(
-                    'query' => $query
+                    'query' => $query,
+                    'auth' => $this->auth 
                 )
             );
         } catch (BadResponseException $e) {
@@ -245,7 +247,8 @@ class Client
                 $this->buildKeyUri($key),
                 array(
                     'query' => array('prevExist' => 'false'),
-                    'form_params' => $data
+                    'form_params' => $data,
+                    'auth' => $this->auth
                 )
             );
         } catch (BadResponseException $e) {
@@ -310,7 +313,8 @@ class Client
                 'query' => $condition,
                 'form_params' => array(
                     'ttl' => (int)$ttl
-                )
+                ),
+                'auth' => $this->auth
             )
         );
         $body = json_decode($response->getBody(), true);
@@ -334,7 +338,7 @@ class Client
     public function rm($key)
     {
         try {
-            $response = $this->guzzleclient->delete($this->buildKeyUri($key));
+            $response = $this->guzzleclient->delete($this->buildKeyUri($key), ['auth' => $this->auth]);
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -369,7 +373,8 @@ class Client
             $response = $this->guzzleclient->delete(
                 $this->buildKeyUri($key),
                 array(
-                    'query' => $query
+                    'query' => $query,
+                    'auth' => $this->auth
                 )
             );
         } catch (BadResponseException $e) {
@@ -402,7 +407,8 @@ class Client
         $response = $this->guzzleclient->get(
             $this->buildKeyUri($key),
             array(
-                'query' => $query
+                'query' => $query,
+                'auth' => $this->auth
             )
         );
         $body = json_decode($response->getBody(), true);
@@ -503,7 +509,7 @@ class Client
         }
         $request = $this->guzzleclient->post(
             $this->buildKeyUri($dir),
-            $this->auth,
+            [ 'auth' => $this->auth ],
             $data
         );
 
@@ -530,7 +536,7 @@ class Client
             $data['ttl'] = $ttl;
         }
 
-        $request = $this->guzzleclient->post($this->buildKeyUri($dir), $this->auth, $data, array(
+        $request = $this->guzzleclient->post($this->buildKeyUri($dir), [ 'auth' => $this->auth ], $data, array(
             'query' => $condition
         ));
         $response = $request->send();
